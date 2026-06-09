@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Management · Feroze1888</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--indigo:#818cf8;--emerald:#34d399;--amber:#fbbf24;--rose:#fb7185;--ink:#ffffff;--muted:#d4dce8;--faint:#b9c3d2;--line:rgba(255,255,255,.1);--bg:#1b2230;--panel:#232c3d;--soft:#2b3447;}
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  body{margin:0;font-family:"IBM Plex Sans",sans-serif;color:var(--ink);background:var(--bg);
+    background-image:radial-gradient(800px 400px at 90% -10%,rgba(129,140,248,.14),transparent 60%);}
+  .font-display{font-family:"Chakra Petch",sans-serif;}.num{font-family:"IBM Plex Mono",monospace;}
+  header{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;}
+  .logo{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--indigo),var(--emerald));}
+  a.back{margin-left:auto;text-decoration:none;color:var(--muted);font-size:13px;border:1px solid var(--line);padding:8px 14px;border-radius:10px;}
+  a.back:hover{border-color:var(--indigo);color:var(--ink);}
+  .wrap{max-width:1000px;margin:26px auto;padding:0 20px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 40px -32px rgba(15,23,42,.3);}
+  h2{font-family:"Chakra Petch",sans-serif;font-size:16px;margin:0;}
+  .grid-form{display:grid;grid-template-columns:1.3fr 1.3fr 1fr auto auto;gap:10px;align-items:end;}
+  label{display:block;font-size:10px;font-family:"IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+  input,select{width:100%;padding:9px 11px;border:1px solid rgba(255,255,255,.16);border-radius:10px;font-size:13px;font-family:inherit;background:#1f2735;color:var(--ink);}
+  input:focus,select:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(129,140,248,.2);background:#1f2735;}
+  .btn{padding:9px 14px;border:1px solid var(--line);background:var(--soft);border-radius:10px;font-size:13px;cursor:pointer;color:var(--ink);}
+  .btn:hover{border-color:var(--indigo);color:var(--indigo);}
+  .btn-primary{background:linear-gradient(90deg,var(--indigo),#6366f1);color:#0b1220;border:0;font-weight:600;}
+  .btn-danger{color:var(--rose);border-color:rgba(251,113,133,.4);}.btn-danger:hover{background:rgba(251,113,133,.12);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--line);}
+  td{padding:11px 12px;border-bottom:1px solid var(--line);}
+  .tag{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:3px 9px;border-radius:99px;letter-spacing:.04em;}
+  .tag-admin{background:rgba(129,140,248,.18);color:var(--indigo);}.tag-user{background:rgba(255,255,255,.08);color:var(--muted);}
+  .tag-edit{background:rgba(52,211,153,.16);color:var(--emerald);}.tag-view{background:rgba(255,255,255,.06);color:var(--faint);}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0d1320;border:1px solid var(--line);color:#fff;padding:11px 18px;border-radius:11px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;}
+  .toast.show{opacity:1;}
+  .muted{color:var(--muted);font-size:12px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+  <div><div class="font-display" style="font-weight:700;font-size:15px;color:var(--ink);">User Management</div><div class="num muted" style="font-size:10px;letter-spacing:.1em;">ADMIN · {{ user.username }}</div></div>
+  <a class="back" href="/">← Dashboard</a>
+</header>
+
+<div class="wrap">
+  <div class="panel" style="padding:20px;margin-bottom:22px;">
+    <h2>Create New User</h2>
+    <p class="muted" style="margin:4px 0 16px;">Add a team member. Grant "Can edit" to let them add/edit data; otherwise they are view-only.</p>
+    <div class="grid-form">
+      <div><label>Username</label><input id="nu" placeholder="e.g. operator1"></div>
+      <div><label>Password</label><input id="np" type="text" placeholder="set a password"></div>
+      <div><label>Role</label><select id="nr"><option value="user">User</option><option value="admin">Admin</option></select></div>
+      <div><label>Edit access</label><select id="ne"><option value="0">View only</option><option value="1">Can edit</option></select></div>
+      <button class="btn btn-primary" onclick="createUser()">Add user</button>
+    </div>
+  </div>
+
+  <div class="panel" style="padding:6px 0;">
+    <table>
+      <thead><tr><th>User</th><th>Role</th><th>Data access</th><th>Created</th><th style="text-align:right;">Actions</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ME = "{{ user.username }}";
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function $(id){return document.getElementById(id);}
+
+async function api(url, opts){
+  let res;
+  try{ res = await fetch(url, opts); }
+  catch(e){ throw new Error("Network error — is the server running?"); }
+  let data=null;
+  try{ data = await res.json(); }catch(e){ data=null; }
+  if(!res.ok || (data && data.ok===false)){
+    throw new Error((data && data.error) || ("Request failed ("+res.status+")"));
+  }
+  return data;
+}
+
+async function load(){
+  try{
+    const d = await api('/api/users');
+    $('rows').innerHTML = d.users.map(u=>`
+      <tr>
+        <td style="font-weight:600">${u.username}${u.username===ME?' <span class="muted">(you)</span>':''}</td>
+        <td><span class="tag ${u.role==='admin'?'tag-admin':'tag-user'}">${u.role.toUpperCase()}</span></td>
+        <td><span class="tag ${u.can_edit?'tag-edit':'tag-view'}">${u.can_edit?'CAN EDIT':'VIEW ONLY'}</span></td>
+        <td class="muted num">${(u.created||'').slice(0,10)}</td>
+        <td style="text-align:right;white-space:nowrap;">
+          ${u.role==='admin'?'':`<button class="btn" onclick="act(${u.id},'toggle_edit')">${u.can_edit?'Revoke edit':'Grant edit'}</button>`}
+          <button class="btn" onclick="resetPw(${u.id},'${u.username}')">Reset PW</button>
+          ${u.username===ME?'':`<button class="btn btn-danger" onclick="del(${u.id},'${u.username}')">Delete</button>`}
+        </td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message); }
+}
+
+async function createUser(){
+  const body = {
+    username: $('nu').value.trim(),
+    password: $('np').value,
+    role: $('nr').value,
+    can_edit: $('ne').value === '1'
+  };
+  if(!body.username || !body.password){ toast('Username and password are required'); return; }
+  try{
+    await api('/api/users', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    $('nu').value=''; $('np').value=''; toast('✓ User created'); load();
+  }catch(e){ toast(e.message); }
+}
+async function act(id, action, extra={}){
+  try{
+    await api('/api/users/'+id, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action,...extra})});
+    toast('✓ Updated'); load();
+  }catch(e){ toast(e.message); }
+}
+function del(id,name){ if(confirm('Delete user "'+name+'"?')) act(id,'delete'); }
+function resetPw(id,name){ const p=prompt('New password for "'+name+'":'); if(p) act(id,'reset_pw',{password:p}); }
+load();
+</script>
+</body>
+</html>

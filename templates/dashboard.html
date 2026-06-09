@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feroze1888 · Hub Energy Monitoring</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* soft dark theme — dim, not black, with high-contrast text */
+    --bg:#1b2230; --panel:#232c3d; --panel-2:#1f2735; --soft:#2b3447;
+    --line:rgba(255,255,255,.08); --line-strong:rgba(255,255,255,.17);
+    --ink:#ffffff; --ink-2:#f1f5fb; --muted:#d4dce8; --faint:#b9c3d2;
+    --indigo:#818cf8; --indigo-soft:rgba(129,140,248,.16);
+    --blue:#60a5fa; --emerald:#34d399; --emerald-soft:rgba(52,211,153,.16);
+    --amber:#fbbf24; --amber-soft:rgba(251,191,36,.16);
+    --cyan:#22d3ee; --violet:#a78bfa; --rose:#fb7185; --teal:#2dd4bf;
+    --lime:#a3e635; --orange:#fb923c; --pink:#f472b6; --sky:#38bdf8;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;font-size:14px;}
+  body{background-image:radial-gradient(1000px 520px at 84% -12%,rgba(129,140,248,.10),transparent 60%),radial-gradient(800px 480px at 0% 110%,rgba(52,211,153,.06),transparent 55%);}
+  .font-display{font-family:"Chakra Petch",sans-serif;}
+  .num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;}
+  .kicker{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+
+  .layout{display:flex;min-height:100vh;}
+  aside{width:262px;flex:none;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;transition:transform .25s;}
+  .brandbox{padding:18px 18px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:11px;}
+  .logo{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--indigo),var(--emerald));box-shadow:0 6px 16px -6px rgba(129,140,248,.7);}
+  .sub{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.16em;color:var(--faint);margin-top:3px;}
+  .unitsearch{margin:14px 14px 8px;}
+  .unitsearch input{width:100%;padding:8px 11px 8px 30px;border:1px solid var(--line-strong);border-radius:10px;font-size:13px;font-family:inherit;color:var(--ink);background:var(--soft) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%239aa6bd' stroke-width='2'><circle cx='6' cy='6' r='4.5'/><path d='M10 10l3 3'/></svg>") 9px center no-repeat;}
+  .unitsearch input:focus{outline:none;border-color:var(--indigo);}
+  .navlabel{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.14em;color:var(--faint);padding:0 20px;margin:4px 0 7px;}
+  #unitList{overflow-y:auto;display:flex;flex-direction:column;gap:2px;flex:1;padding:0 12px;}
+  .unit-btn{width:100%;text-align:left;padding:9px 11px;border-radius:9px;color:var(--muted);font-size:13px;border:1px solid transparent;background:none;cursor:pointer;display:flex;align-items:center;gap:9px;transition:.13s;}
+  .unit-btn:hover{background:var(--soft);color:var(--ink);}
+  .unit-btn.active{background:var(--indigo-soft);color:var(--indigo);border-color:rgba(129,140,248,.4);font-weight:600;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--faint);flex:none;}
+  .unit-btn.active .dot{background:var(--indigo);box-shadow:0 0 0 3px rgba(129,140,248,.2);}
+
+  .userfoot{padding:13px 14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:9px;}
+  .ucard{display:flex;align-items:center;gap:9px;background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:8px 10px;}
+  .uavatar{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--indigo),var(--violet));color:#0b1220;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;}
+
+  .field{background:var(--panel-2);border:1px solid var(--line-strong);color:var(--ink);border-radius:10px;padding:9px 11px;font-size:13px;font-family:inherit;}
+  .field:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(129,140,248,.18);}
+  select.field option{background:var(--panel);color:var(--ink);}
+  .btn{border:1px solid var(--line-strong);background:var(--soft);color:var(--ink-2);border-radius:10px;padding:9px 13px;font-size:13px;cursor:pointer;transition:.13s;text-decoration:none;display:inline-flex;align-items:center;gap:7px;font-family:inherit;}
+  .btn:hover{border-color:var(--indigo);color:var(--ink);}
+  .btn-primary{background:linear-gradient(90deg,var(--indigo),#6366f1);border:0;color:#0b1220;font-weight:600;}
+  .btn-green{background:linear-gradient(90deg,var(--emerald),#10b981);border:0;color:#06231a;font-weight:600;}
+  .btn-primary:hover,.btn-green:hover{filter:brightness(1.08);}
+  .btn-sm{padding:7px 11px;font-size:12.5px;}
+
+  main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  header.bar{background:rgba(35,44,61,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:13px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:30;}
+  .pill{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.03em;padding:5px 11px;border-radius:999px;border:1px solid var(--line-strong);color:var(--muted);display:inline-flex;align-items:center;gap:7px;background:var(--panel-2);}
+  .livedot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 0 3px rgba(52,211,153,.22);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+  .content{padding:22px 24px;display:flex;flex-direction:column;gap:18px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 40px -26px rgba(0,0,0,.7);}
+  .card-h{display:flex;align-items:flex-start;gap:12px;}
+  .card-h h2{font-family:"Chakra Petch",sans-serif;font-size:15px;margin:2px 0 0;font-weight:600;color:var(--ink);}
+  .card-h p{font-size:11.5px;color:var(--muted);margin:3px 0 0;}
+
+  .grid{display:grid;}
+  .reveal{animation:fadeUp .45s cubic-bezier(.2,.7,.3,1) both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:none;}}
+
+  .kpi{padding:17px 18px;position:relative;overflow:hidden;}
+  .kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent);}
+  .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .icon-chip{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--tint);flex:none;}
+  .kpi-val{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:30px;line-height:1.05;margin-top:14px;letter-spacing:-.01em;color:var(--ink);}
+  .kpi-val.sm{font-size:19px;}
+  .kpi-unit{font-size:13px;color:var(--faint);font-weight:500;}
+  .kpi-sub{font-size:12px;color:var(--muted);margin-top:6px;}
+
+  table.dt{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;}
+  table.dt th{position:sticky;top:0;background:var(--soft);color:var(--muted);text-align:right;font-weight:600;padding:10px 12px;white-space:nowrap;border-bottom:1px solid var(--line-strong);font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.02em;}
+  table.dt th:first-child,table.dt td:first-child{text-align:left;position:sticky;left:0;background:var(--panel);z-index:2;}
+  table.dt th:first-child{background:var(--soft);z-index:3;}
+  table.dt td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;font-family:"IBM Plex Mono",monospace;color:var(--ink-2);}
+  table.dt tr:hover td{background:rgba(129,140,248,.09);}
+  table.dt tr.populated td:first-child{color:var(--emerald);font-weight:600;}
+  td.empty{color:var(--faint);}
+  th[data-col]{user-select:none;}
+  th[data-col].dragging{opacity:.4;}
+  th[data-col].drop-target{outline:2px dashed var(--indigo);outline-offset:-2px;background:var(--indigo-soft) !important;}
+  .drag-grip{opacity:.45;font-size:11px;margin-left:3px;}
+  .scroll::-webkit-scrollbar{height:9px;width:9px;}
+  .scroll::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:99px;}
+  .scroll::-webkit-scrollbar-track{background:transparent;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(5,8,15,.6);display:none;align-items:center;justify-content:center;z-index:60;padding:20px;}
+  .modal-bg.show{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--line-strong);border-radius:18px;max-width:720px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 30px 90px -20px rgba(0,0,0,.8);}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0d1320;border:1px solid var(--line-strong);color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:80;max-width:90vw;box-shadow:0 14px 30px -12px rgba(0,0,0,.6);}
+  .toast.show{opacity:1;}
+  .toast.err{background:#7f1d2e;border-color:#b91c4a;}
+
+  footer.status{border-top:1px solid var(--line);padding:11px 24px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:11.5px;color:var(--faint);}
+  footer.status .num{color:var(--muted);}
+
+  #scrim{display:none;}
+  #burger{display:none;}
+  @media(max-width:1024px){
+    aside{position:fixed;z-index:50;height:100%;transform:translateX(-105%);}
+    aside.open{transform:none;}
+    #scrim.show{display:block;position:fixed;inset:0;background:rgba(5,8,15,.5);z-index:40;}
+    #burger{display:inline-flex !important;}
+    .hide-sm{display:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="brandbox">
+      <div class="logo"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0b1220" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <div><div class="font-display" style="font-weight:700;font-size:16px;color:var(--ink);">Feroze1888</div><div class="sub">HUB ENERGY MONITORING</div></div>
+    </div>
+    <div class="unitsearch"><input id="unitSearch" placeholder="Search units…"></div>
+    <div class="navlabel">PRODUCTION UNITS</div>
+    <div id="unitList" class="scroll"></div>
+    <div class="userfoot">
+      {% if can_edit %}<button class="btn btn-green" style="justify-content:center;" onclick="openEdit()">+ Add / Edit Data</button>{% endif %}
+      {% if user.role=='admin' %}<a class="btn" style="justify-content:center;" href="/users">⚙ User Management</a>{% endif %}
+      <div class="ucard">
+        <div class="uavatar">{{ user.username[0]|upper }}</div>
+        <div style="min-width:0;flex:1;">
+          <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;color:var(--ink);">{{ user.username }}</div>
+          <div class="kicker">{{ 'ADMINISTRATOR' if user.role=='admin' else ('EDITOR' if can_edit else 'VIEWER') }}</div>
+        </div>
+        <a class="btn btn-sm" href="/logout" title="Sign out">↩</a>
+      </div>
+    </div>
+  </aside>
+  <div id="scrim" onclick="toggleSidebar(false)"></div>
+
+  <!-- MAIN -->
+  <main>
+    <header class="bar">
+      <button class="btn btn-sm" id="burger" onclick="toggleSidebar(true)">☰</button>
+      <div style="min-width:0;">
+        <div class="kicker">PRODUCTION UNIT</div>
+        <h1 class="font-display" style="font-size:19px;margin:1px 0 0;font-weight:700;color:var(--ink);" id="unitTitle">—</h1>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:9px;align-items:center;">
+        <span class="pill hide-sm" id="syncPill"><span class="livedot"></span>Synced —</span>
+        <span class="pill" id="unitCount">—</span>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- KPI CARDS (3) -->
+      <section id="kpiRow" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;"></section>
+
+      <!-- REPORTING PERIOD: separate YEAR + MONTH -->
+      <div class="card" style="padding:13px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
+        <span class="kicker">Reporting period</span>
+        <label class="kicker" style="color:var(--muted);">Year</label>
+        <select id="yearSelect" class="field" style="min-width:100px;"></select>
+        <label class="kicker" style="color:var(--muted);">Month</label>
+        <select id="monthSelect" class="field" style="min-width:130px;"></select>
+        <span style="font-size:12px;color:var(--faint);" id="totalTypeLabel"></span>
+        <a class="btn btn-sm" id="exportChartBtn" style="margin-left:auto;">⬇ Export</a>
+      </div>
+
+      <!-- TREND -->
+      <section class="card reveal" style="padding:18px;">
+        <div class="card-h"><div><div class="kicker">Time series</div><h2>Energy Consumption Trend</h2><p>Total load vs solar generation across the year (kWh)</p></div><button class="btn btn-sm" style="margin-left:auto" onclick="exportChartData('trend')">⬇ Export</button></div>
+        <div style="height:288px;margin-top:12px;"><canvas id="trendChart"></canvas></div>
+      </section>
+
+      <!-- DONUT + STACK -->
+      <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(345px,1fr));gap:18px;">
+        <div class="card reveal" style="padding:18px;">
+          <div class="card-h"><div><div class="kicker">Distribution</div><h2>Department Kwh</h2><p>Every department for <span id="donutMonth" class="num" style="color:var(--ink-2)"></span> · excl. total feed</p></div><button class="btn btn-sm" style="margin-left:auto" onclick="exportChartData('donut')">⬇ Export</button></div>
+          <div style="height:330px;margin-top:8px;"><canvas id="donutChart"></canvas></div>
+        </div>
+        <div class="card reveal" style="padding:18px;">
+          <div class="card-h"><div><div class="kicker">Supply mix</div><h2>Solar vs Grid</h2><p>Grid draw vs solar contribution across the year (kWh)</p></div><button class="btn btn-sm" style="margin-left:auto" onclick="exportChartData('stack')">⬇ Export</button></div>
+          <div style="height:330px;margin-top:8px;"><canvas id="stackChart"></canvas></div>
+        </div>
+      </section>
+
+      <!-- RAW DATA BAR (vertical, value labels) -->
+      <section class="card reveal" style="padding:18px;">
+        <div class="card-h"><div><div class="kicker">Source columns</div><h2>Raw Data Chart</h2><p>All columns for <span id="rawMonth" class="num" style="color:var(--ink-2)"></span>, in source (Excel) order</p></div><button class="btn btn-sm" style="margin-left:auto" onclick="exportChartData('raw')">⬇ Export</button></div>
+        <div style="margin-top:12px;height:380px;"><canvas id="rawChart"></canvas></div>
+      </section>
+
+      <!-- DATA TABLE -->
+      <section class="card reveal" style="padding:18px;">
+        <div class="card-h" style="flex-wrap:wrap;">
+          <div><div class="kicker">Source data</div><h2>Raw Data — <span id="tableSheetName"></span></h2><p>Full monthly breakdown for the selected year <span id="reorderHint" style="color:var(--indigo)"></span></p></div>
+          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <label class="kicker" style="color:var(--muted);">Year</label>
+            <select id="tableYear" class="field btn-sm"></select>
+            <label class="kicker" style="color:var(--muted);">Month</label>
+            <select id="tableMonth" class="field btn-sm"></select>
+            <input id="tableSearch" class="field btn-sm" style="width:150px;" placeholder="Search…">
+            <a class="btn btn-sm" id="exportTableBtn">⬇ Export table</a>
+          </div>
+        </div>
+        <div class="scroll" style="overflow:auto;max-height:430px;border:1px solid var(--line);border-radius:12px;margin-top:14px;">
+          <table class="dt"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table>
+        </div>
+      </section>
+    </div>
+
+    <footer class="status">
+      <span>Source: <span class="num">All_Department_Monthly_Kwh.xlsx</span></span>
+      <span class="hide-sm">·</span><span class="hide-sm">Live sync every 20s</span>
+      <span style="margin-left:auto;" class="num" id="footSync">—</span>
+    </footer>
+  </main>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="editModal">
+  <div class="modal" style="padding:22px;">
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:4px;">
+      <div><div class="kicker">Write to source workbook</div><h2 class="font-display" style="font-size:18px;margin:2px 0 0;color:var(--ink);">Add / Edit Monthly Data</h2></div>
+      <button class="btn btn-sm" style="margin-left:auto;" onclick="closeEdit()">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin:8px 0 16px;">Values are saved into the Excel file and reflected across the dashboard. Leave a field blank to clear it.</p>
+    <div class="grid" style="grid-template-columns:1.4fr 1fr 1fr;gap:12px;">
+      <div><div class="kicker" style="margin-bottom:5px;">UNIT</div><select id="editSheet" class="field" style="width:100%;"></select></div>
+      <div><div class="kicker" style="margin-bottom:5px;">YEAR</div><select id="editYear" class="field" style="width:100%;"></select></div>
+      <div><div class="kicker" style="margin-bottom:5px;">MONTH</div><select id="editMonth" class="field" style="width:100%;"></select></div>
+    </div>
+    <div id="editFields" class="grid" style="grid-template-columns:1fr 1fr;gap:11px;margin-top:16px;"></div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button class="btn" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-green" id="saveBtn" onclick="saveEdit()">Save to Excel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CAN_EDIT = {{ 'true' if can_edit else 'false' }};
+const IS_ADMIN = {{ 'true' if user.role=='admin' else 'false' }};
+let energyData = {}, fileVersion = 0, colOrder = {};
+let state = { sheet:null, year:null, month:null, tableYear:null, tableMonth:'' };  // month = full "YYYY-MM"; tableMonth = "MM" or ""
+const YEARS=[]; for(let y=2026;y<=2035;y++) YEARS.push(String(y));
+const MONTHS=['01','02','03','04','05','06','07','08','09','10','11','12'];
+const monthNameNum=mm=>new Date(2000,(+mm)-1,1).toLocaleString('en-US',{month:'long'});
+let charts = {};
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const PALETTE = ['--indigo','--blue','--emerald','--amber','--cyan','--violet','--rose','--teal','--lime','--orange','--pink','--sky'].map(css);
+const $ = id => document.getElementById(id);
+
+async function api(url, opts){
+  let res;
+  try{ res = await fetch(url, opts); }catch(e){ throw new Error("Network error — check the server connection."); }
+  let data=null; try{ data = await res.json(); }catch(e){ data=null; }
+  if(!res.ok || (data && data.ok===false)) throw new Error((data&&data.error)||("Request failed ("+res.status+")"));
+  return data;
+}
+function toast(m, err){const t=$('toast');t.textContent=m;t.className='toast show'+(err?' err':'');setTimeout(()=>t.classList.remove('show'),3200);}
+
+/* ---- classification (per-sheet, schema-aware) ---- */
+function classify(sheet, cols){
+  // Solar Park: consumption = "Lighting"; solar generation = "Main HT +"; trend says "Consumption"
+  if(/^solar\s*park$/i.test(sheet)){
+    const total='Lighting', solarC='Main HT +';
+    const production=cols.filter(c=>c!==total && c!==solarC);
+    return {total:total, solar:[solarC], ac:[], production:production, isGen:false, isPH:false, forceTotal:true, trendLabel:'Consumption'};
+  }
+  const isGen = /solar/i.test(sheet) && !/power\s*house/i.test(sheet);
+  const isPH  = /power\s*house/i.test(sheet);
+  if(isGen){
+    // Generation site: sum/breakdown uses INVERTER columns only (exclude area-aggregate columns).
+    const inv = cols.filter(c=>/^inv\b/i.test(String(c).trim()));
+    const gen = inv.length ? inv : cols.slice();
+    return {total:null, solar:[], ac:[], production:gen, isGen:true, isPH:false};
+  }
+  let total=null;
+  for(const re of [/^main\s*lt$/i,/^sub\s*lt$/i]){const c=cols.find(x=>re.test(String(x).trim()));if(c){total=c;break;}}
+  const solar=[],ac=[],production=[];
+  for(const c of cols){
+    if(c===total)continue;
+    if(/solar/i.test(c)&&!isPH){solar.push(c);continue;}
+    if(/\bac\b/i.test(c)||/filter/i.test(c)){ac.push(c);continue;}
+    production.push(c);
+  }
+  return {total,solar,ac,production,isGen:false,isPH};
+}
+const colsOf=s=>Object.keys(energyData[s][0]).filter(k=>k!=='Month');
+function orderedCols(sheet){
+  const base=colsOf(sheet); const ord=colOrder[sheet];
+  if(!ord||!ord.length) return base;
+  const inOrd=ord.filter(c=>base.includes(c));
+  const rest=base.filter(c=>!inOrd.includes(c));
+  return [...inOrd,...rest];
+}
+const rowOf=(s,m)=>energyData[s].find(r=>r.Month===m);
+const sumCols=(r,c)=>c.reduce((a,x)=>a+(Number.isFinite(r?.[x])?r[x]:0),0);
+const hasVal=(r,c)=>c.some(x=>Number.isFinite(r?.[x]));
+function totalValue(r,cl){ if(!r)return null;
+  if(cl.forceTotal) return Number.isFinite(r[cl.total])?r[cl.total]:null;
+  if(cl.isGen)return sumCols(r,[...cl.production,...cl.solar]);
+  if(cl.total&&Number.isFinite(r[cl.total])&&r[cl.total]>0)return r[cl.total];
+  if(!hasVal(r,[...cl.production,...cl.ac]))return null; return sumCols(r,[...cl.production,...cl.ac]); }
+function solarValue(r,cl){ if(!r)return 0; if(cl.isGen)return totalValue(r,cl)||0; return sumCols(r,cl.solar); }
+
+const fmt=n=>n==null?'—':Math.round(n).toLocaleString('en-US');
+const fmtC=n=>{if(n==null)return'—';const a=Math.abs(n);if(a>=1e6)return(n/1e6).toFixed(2)+'M';if(a>=1e3)return(n/1e3).toFixed(1)+'k';return Math.round(n).toString();};
+const monthName=full=>{const[y,mo]=full.split('-');return new Date(y,mo-1,1).toLocaleString('en-US',{month:'long'});};
+const monthLabel=full=>{const[y,mo]=full.split('-');return new Date(y,mo-1,1).toLocaleString('en-US',{month:'short',year:'numeric'});};
+function bestMonthIn(list){let best=list[0],bc=-1;list.forEach(m=>{const r=rowOf(state.sheet,m);const c=Object.keys(r||{}).filter(k=>k!=='Month'&&Number.isFinite(r[k])).length;if(c>bc){bc=c;best=m;}});return best;}
+
+/* ---------------- RENDER ---------------- */
+function renderSidebar(){
+  const q=($('unitSearch').value||'').toLowerCase();
+  $('unitList').innerHTML='';
+  Object.keys(energyData).filter(s=>s.toLowerCase().includes(q)).forEach(s=>{
+    const b=document.createElement('button');
+    b.className='unit-btn'+(s===state.sheet?' active':'');
+    b.innerHTML='<span class="dot"></span><span style="overflow:hidden;text-overflow:ellipsis;">'+s+'</span>';
+    b.onclick=()=>{state.sheet=s;if(innerWidth<1024)toggleSidebar(false);renderAll();};
+    $('unitList').appendChild(b);
+  });
+  $('unitCount').textContent=Object.keys(energyData).length+' UNITS';
+}
+function renderControls(){
+  // Reporting period: fixed year range 2026–2035 + static Jan–Dec
+  const ys=$('yearSelect');
+  ys.innerHTML=YEARS.map(y=>'<option '+(y===state.year?'selected':'')+'>'+y+'</option>').join('');
+  ys.value=state.year;
+  ys.onchange=e=>{state.year=e.target.value; state.month=state.year+'-'+state.month.split('-')[1]; renderAll();};
+  const ms=$('monthSelect');
+  const allVal=state.year+'-all';
+  ms.innerHTML='<option value="'+allVal+'" '+(state.month===allVal?'selected':'')+'>All months</option>'+
+    MONTHS.map(mm=>'<option value="'+(state.year+'-'+mm)+'" '+((state.year+'-'+mm)===state.month?'selected':'')+'>'+monthNameNum(mm)+'</option>').join('');
+  ms.value=state.month;
+  ms.onchange=e=>{state.month=e.target.value; renderAll();};
+  // Table filters: fixed year range + "All months"
+  const ty=$('tableYear');
+  ty.innerHTML=YEARS.map(y=>'<option '+(y===state.tableYear?'selected':'')+'>'+y+'</option>').join('');
+  ty.value=state.tableYear;
+  ty.onchange=e=>{state.tableYear=e.target.value; renderTable(); updateExportLinks();};
+  const tm=$('tableMonth');
+  tm.innerHTML='<option value="">All months</option>'+MONTHS.map(mm=>'<option value="'+mm+'" '+(mm===state.tableMonth?'selected':'')+'>'+monthNameNum(mm)+'</option>').join('');
+  tm.value=state.tableMonth;
+  tm.onchange=e=>{state.tableMonth=e.target.value; renderTable(); updateExportLinks();};
+}
+function updateExportLinks(){
+  const sh=encodeURIComponent(state.sheet);
+  $('exportTableBtn').href='/api/export/table?sheet='+sh+'&year='+(state.tableYear||'')+'&month='+(state.tableMonth||'');
+  const cq=state.month.endsWith('-all')?('month=all&year='+state.year):('month='+state.month);
+  $('exportChartBtn').href='/api/export/chart?sheet='+sh+'&'+cq;
+}
+
+/* ---- per-chart export (matches exactly what each chart shows, respects filters) ---- */
+async function gridDownload(headers,rows,fname,monthStr){
+  try{
+    const res=await fetch('/api/export/grid',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({title:state.sheet,month:monthStr,year:state.year,headers:headers,rows:rows,sheetname:state.sheet})});
+    if(!res.ok){let e={};try{e=await res.json();}catch(_){} throw new Error(e.error||('Export failed ('+res.status+')'));}
+    const blob=await res.blob(), url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=fname; a.click(); URL.revokeObjectURL(url);
+    toast('✓ Exported');
+  }catch(e){ toast(e.message,true); }
+}
+function exportChartData(type){
+  const cl=classify(state.sheet,colsOf(state.sheet));
+  const isAll=state.month.endsWith('-all');
+  const periodTxt=isAll?('All months '+state.year):monthLabel(state.month);
+  const monthStr=isAll?'All':monthNameNum(state.month.split('-')[1]);
+  let headers,rows,fname,mStr=monthStr;
+
+  if(type==='trend'){
+    const tl=cl.trendLabel||(cl.isGen?'Generation':'Total Load');
+    headers=['Month',tl,'Solar'];
+    rows=MONTHS.map(mm=>{const r=rowOf(state.sheet,state.year+'-'+mm);const t=totalValue(r,cl);const s=solarValue(r,cl);
+      return [monthNameNum(mm), t==null?null:Math.round(t), (r&&(hasVal(r,cl.solar)||cl.isGen))?Math.round(s||0):null];});
+    fname=state.sheet+' Trend '+state.year+'.xlsx'; mStr='Jan–Dec';
+  } else if(type==='stack'){
+    headers=['Month','Grid','Solar'];
+    rows=MONTHS.map(mm=>{const r=rowOf(state.sheet,state.year+'-'+mm);const t=totalValue(r,cl),s=solarValue(r,cl);
+      let grid=null,sol=null;
+      if(cl.isGen){ sol=t==null?null:Math.round(t); }
+      else if(t!=null){ grid=Math.round(Math.max(t-(s||0),0)); sol=Math.round(s||0); }
+      return [monthNameNum(mm), grid, sol];});
+    fname=state.sheet+' Solar vs Grid '+state.year+'.xlsx'; mStr='Jan–Dec';
+  } else if(type==='donut'){
+    const row=isAll?aggregateYear(state.sheet,state.year):rowOf(state.sheet,state.month);
+    const cols=[...cl.production,...cl.ac,...cl.solar].filter((v,i,a)=>a.indexOf(v)===i);
+    const items=cols.map(c=>({name:c,val:row?.[c]})).filter(x=>Number.isFinite(x.val)&&x.val>0).sort((a,b)=>b.val-a.val);
+    headers=['Name','kWh ('+periodTxt+')']; rows=items.map(x=>[x.name,Math.round(x.val)]);
+    fname=state.sheet+' Department Kwh '+periodTxt+'.xlsx';
+  } else { /* raw */
+    const row=isAll?aggregateYear(state.sheet,state.year):rowOf(state.sheet,state.month);
+    const base=orderedCols(state.sheet);
+    const cols=(cl.isGen&&cl.production.length)?base.filter(c=>cl.production.includes(c)):base;
+    const items=cols.map(c=>({name:c,val:row?.[c]})).filter(x=>Number.isFinite(x.val));
+    headers=['Name','kWh ('+periodTxt+')']; rows=items.map(x=>[x.name,Math.round(x.val)]);
+    fname=state.sheet+' Raw Data '+periodTxt+'.xlsx';
+  }
+  gridDownload(headers,rows,fname,mStr);
+}
+
+function renderKPIs(cl,row){
+  const total=totalValue(row,cl), solar=solarValue(row,cl);
+  const share=total?(solar/total*100):(cl.isGen?100:0);
+  let peak={name:'—',val:null};
+  [...cl.production,...cl.ac].forEach(c=>{const v=row?.[c];if(Number.isFinite(v)&&(peak.val==null||v>peak.val))peak={name:c,val:v};});
+  const cards=[
+    {accent:'--indigo',tint:'var(--indigo-soft)',label:'Total Energy Consumption',big:fmt(total),unit:'kWh',
+     sub: cl.isGen?'Inverter generation total':(cl.total?('Metered via '+cl.total):'Computed sum of loads'),
+     icon:'M13 2 3 14h9l-1 8 10-12h-9z'},
+    {accent:'--emerald',tint:'var(--emerald-soft)',label:'Solar Generation Share',big:fmt(solar),unit:'kWh',
+     sub:'<b style="color:var(--emerald)">'+share.toFixed(1)+'%</b> of consumption',
+     icon:'M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6l1.4 1.4m10 10 1.4 1.4m0-12.8-1.4 1.4m-10 10-1.4 1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z'},
+    {accent:'--amber',tint:'var(--amber-soft)',label:'Peak Department',big:(peak.name.length>16?peak.name.slice(0,15)+'…':peak.name),small:true,
+     sub: peak.val==null?'No data this month':(fmt(peak.val)+' kWh consumed'),
+     icon:'M3 17l6-6 4 4 8-8M21 7h-5m5 0v5'},
+  ];
+  $('kpiRow').innerHTML=cards.map((c,i)=>
+    '<div class="card kpi reveal" style="--accent:var('+c.accent+');--tint:'+c.tint+';animation-delay:'+(i*60)+'ms">'+
+      '<div class="kpi-top"><span class="kicker">'+c.label+'</span>'+
+        '<span class="icon-chip"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var('+c.accent+')" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+c.icon+'"/></svg></span></div>'+
+      '<div class="kpi-val'+(c.small?' sm':'')+'">'+c.big+(c.unit?' <span class="kpi-unit">'+c.unit+'</span>':'')+'</div>'+
+      '<div class="kpi-sub">'+c.sub+'</div></div>').join('');
+}
+
+function lightOpts(o){o=o||{};const stacked=o.stacked,yTitle=o.yTitle;
+  return {responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{color:css('--muted'),boxWidth:12,boxHeight:12,usePointStyle:true,font:{family:'IBM Plex Sans',size:12}}},
+      tooltip:{backgroundColor:css('--panel'),borderColor:css('--line-strong'),borderWidth:1,titleColor:css('--ink'),bodyColor:css('--muted'),padding:10,cornerRadius:8,titleFont:{family:'IBM Plex Sans',weight:'600'},bodyFont:{family:'IBM Plex Mono'},callbacks:{label:c=>' '+(c.dataset.label||c.label)+': '+fmt(c.raw)+' kWh'}}},
+    scales:{x:{stacked:stacked,grid:{color:css('--line')},ticks:{color:css('--faint'),font:{family:'IBM Plex Mono',size:10},maxRotation:0,autoSkipPadding:12}},
+      y:{stacked:stacked,grid:{color:css('--line')},title:{display:!!yTitle,text:yTitle,color:css('--faint'),font:{family:'IBM Plex Mono',size:10}},ticks:{color:css('--faint'),font:{family:'IBM Plex Mono',size:10},callback:v=>fmtC(v)}}},
+    animation:{duration:600,easing:'easeOutQuart'}};
+}
+
+function renderTrend(cl){
+  const labels=MONTHS.map(mm=>monthNameNum(mm).slice(0,3));
+  const rows=MONTHS.map(mm=>rowOf(state.sheet,state.year+'-'+mm));
+  const totals=rows.map(r=>{const v=totalValue(r,cl);return v==null?null:Math.round(v);});
+  const solars=rows.map(r=>{const v=solarValue(r,cl);return (r&&(hasVal(r,cl.solar)||cl.isGen))?Math.round(v||0):null;});
+  charts.trend&&charts.trend.destroy();
+  const ctx=$('trendChart'),g=ctx.getContext('2d').createLinearGradient(0,0,0,288);
+  g.addColorStop(0,'rgba(129,140,248,.30)');g.addColorStop(1,'rgba(129,140,248,0)');
+  charts.trend=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[
+    {label:cl.trendLabel||(cl.isGen?'Generation':'Total Load'),data:totals,borderColor:css('--indigo'),backgroundColor:g,fill:true,tension:.35,spanGaps:true,pointRadius:4,pointHoverRadius:6,pointBackgroundColor:css('--indigo'),borderWidth:2.5},
+    {label:'Solar',data:solars,borderColor:css('--emerald'),fill:false,tension:.35,spanGaps:true,pointRadius:4,pointBackgroundColor:css('--emerald'),borderWidth:2.5,borderDash:[5,4],hidden:cl.isGen}
+  ]},options:lightOpts({yTitle:'kWh'})});
+}
+function renderDonut(cl,row){
+  const cols=[...cl.production,...cl.ac,...cl.solar].filter((v,i,a)=>a.indexOf(v)===i);
+  const items=cols.map(c=>({name:c,val:row?.[c]})).filter(x=>Number.isFinite(x.val)&&x.val>0).sort((a,b)=>b.val-a.val);
+  charts.donut&&charts.donut.destroy();
+  const ctx=$('donutChart');
+  if(!items.length){ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height);return;}
+  const tot=items.reduce((a,x)=>a+x.val,0);
+  charts.donut=new Chart(ctx,{type:'doughnut',data:{labels:items.map(x=>x.name),
+    datasets:[{data:items.map(x=>Math.round(x.val)),backgroundColor:items.map((_,i)=>PALETTE[i%PALETTE.length]),borderColor:css('--panel'),borderWidth:2,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{legend:{position:'right',labels:{color:css('--muted'),boxWidth:10,boxHeight:10,padding:7,font:{family:'IBM Plex Sans',size:10.5}}},
+        tooltip:{backgroundColor:css('--panel'),borderColor:css('--line-strong'),borderWidth:1,titleColor:css('--ink'),bodyColor:css('--muted'),padding:10,cornerRadius:8,callbacks:{label:c=>' '+c.label+': '+fmt(c.raw)+' kWh ('+(c.raw/tot*100).toFixed(1)+'%)'}}}}});
+}
+function renderStack(cl){
+  const labels=MONTHS.map(mm=>monthNameNum(mm).slice(0,3)),grid=[],solar=[];
+  MONTHS.forEach(mm=>{const r=rowOf(state.sheet,state.year+'-'+mm);const t=totalValue(r,cl),s=solarValue(r,cl);
+    if(cl.isGen){grid.push(null);solar.push(t==null?null:Math.round(t));}
+    else if(t==null){grid.push(null);solar.push(null);}
+    else{grid.push(Math.round(Math.max(t-(s||0),0)));solar.push(Math.round(s||0));}});
+  charts.stack&&charts.stack.destroy();
+  charts.stack=new Chart($('stackChart'),{type:'bar',data:{labels:labels,datasets:[
+    {label:'Grid',data:grid,backgroundColor:css('--blue'),borderRadius:4,stack:'s'},
+    {label:'Solar',data:solar,backgroundColor:css('--emerald'),borderRadius:4,stack:'s'}
+  ]},options:lightOpts({yTitle:'kWh',stacked:true})});
+}
+function renderRawBar(cl,row){
+  // follow admin's custom column order; Solar shows inverters only; others all columns
+  const base=orderedCols(state.sheet);
+  const cols=(cl.isGen && cl.production.length) ? base.filter(c=>cl.production.includes(c)) : base;
+  const items=cols.map(c=>({name:c,val:row?.[c]})).filter(x=>Number.isFinite(x.val));  // keep chosen order, no sort
+  const ctx=$('rawChart');
+  charts.raw&&charts.raw.destroy();
+  if(!items.length){ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height);return;}
+  const colorFor=n=>/solar|^inv/i.test(n)?css('--emerald'):((/\bac\b/i.test(n)||/filter/i.test(n))?css('--cyan'):css('--blue'));
+  const showLabels = items.length<=24;   // skip labels when too many bars to avoid clutter
+  const valuePlugin={id:'valueLabels',afterDatasetsDraw(chart){
+    if(!showLabels)return;
+    const c=chart.ctx, meta=chart.getDatasetMeta(0);
+    c.save();c.fillStyle=css('--ink');c.font='600 10px "IBM Plex Mono"';c.textAlign='center';c.textBaseline='bottom';
+    meta.data.forEach((el,i)=>{const v=chart.data.datasets[0].data[i];if(v==null)return;c.fillText(fmtC(v),el.x,el.y-4);});
+    c.restore();
+  }};
+  charts.raw=new Chart(ctx,{type:'bar',
+    data:{labels:items.map(x=>x.name),datasets:[{label:'kWh',data:items.map(x=>Math.round(x.val)),backgroundColor:items.map(x=>colorFor(x.name)),borderRadius:5,maxBarThickness:64}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:22}},
+      plugins:{legend:{display:false},
+        tooltip:{backgroundColor:css('--panel'),borderColor:css('--line-strong'),borderWidth:1,titleColor:css('--ink'),bodyColor:css('--muted'),padding:10,cornerRadius:8,callbacks:{label:c=>' '+fmt(c.raw)+' kWh'}}},
+      scales:{x:{grid:{display:false},ticks:{color:css('--muted'),font:{family:'IBM Plex Sans',size:10},maxRotation:60,minRotation:items.length>8?40:0,autoSkip:false}},
+        y:{grid:{color:css('--line')},ticks:{color:css('--faint'),font:{family:'IBM Plex Mono',size:10},callback:v=>fmtC(v)}}},
+      animation:{duration:600,easing:'easeOutQuart'}},
+    plugins:[valuePlugin]});
+}
+function renderTable(){
+  const cols=orderedCols(state.sheet);
+  $('tableSheetName').textContent=state.sheet;
+  if($('reorderHint')) $('reorderHint').textContent = IS_ADMIN ? '· drag column headers to reorder' : '';
+  $('tableHead').innerHTML='<tr><th>Month</th>'+cols.map(c=>{
+    const safe=String(c).replace(/"/g,'&quot;');
+    return '<th data-col="'+safe+'">'+c+(IS_ADMIN?' <span class="drag-grip">⠿</span>':'')+'</th>';
+  }).join('')+'</tr>';
+  const q=$('tableSearch').value.toLowerCase();
+  const months = state.tableMonth ? [state.tableMonth] : MONTHS;
+  const body=months.map(mm=>{
+    const full=state.tableYear+'-'+mm, r=rowOf(state.sheet,full);
+    const cells=cols.map(c=>Number.isFinite(r?.[c])?'<td>'+fmt(r[c])+'</td>':'<td class="empty">—</td>').join('');
+    const txt=(monthLabel(full)+' '+cols.map(c=>r?.[c]).join(' ')).toLowerCase();
+    if(q&&!txt.includes(q))return'';
+    const pop=cols.some(c=>Number.isFinite(r?.[c]));
+    return '<tr class="'+(pop?'populated':'')+'"><td>'+monthLabel(full)+'</td>'+cells+'</tr>';
+  }).join('');
+  $('tableBody').innerHTML=body||'<tr><td colspan="'+(cols.length+1)+'" class="empty" style="text-align:center;padding:22px;">No matching rows</td></tr>';
+  if(IS_ADMIN) enableColDnD();
+}
+
+/* ---- admin: drag table column headers to reorder (saved on the server) ---- */
+function enableColDnD(){
+  let dragCol=null;
+  document.querySelectorAll('#tableHead th[data-col]').forEach(th=>{
+    th.draggable=true; th.style.cursor='grab';
+    th.ondragstart=e=>{dragCol=th.getAttribute('data-col'); th.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain',dragCol);}catch(_){}};
+    th.ondragend=()=>th.classList.remove('dragging');
+    th.ondragover=e=>{e.preventDefault(); e.dataTransfer.dropEffect='move'; th.classList.add('drop-target');};
+    th.ondragleave=()=>th.classList.remove('drop-target');
+    th.ondrop=e=>{e.preventDefault(); th.classList.remove('drop-target'); const target=th.getAttribute('data-col'); if(dragCol&&target&&dragCol!==target) reorderCols(dragCol,target);};
+  });
+}
+function reorderCols(from,to){
+  const cols=orderedCols(state.sheet).slice();
+  const fi=cols.indexOf(from); if(fi<0)return; cols.splice(fi,1);
+  const ti=cols.indexOf(to); if(ti<0)cols.push(from); else cols.splice(ti,0,from);
+  colOrder[state.sheet]=cols;
+  saveColOrder(state.sheet,cols);
+  renderAll();
+}
+async function saveColOrder(sheet,order){
+  try{ await api('/api/colorder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sheet:sheet,order:order})}); toast('✓ Column order saved'); }
+  catch(e){ toast(e.message,true); }
+}
+
+function aggregateYear(sheet,year){
+  const rows=energyData[sheet].filter(r=>r.Month.startsWith(year));
+  const agg={Month:year+'-all'};
+  colsOf(sheet).forEach(c=>{ let s=null; rows.forEach(r=>{ if(Number.isFinite(r[c])) s=(s||0)+r[c]; }); agg[c]=s; });
+  return agg;
+}
+function renderAll(){
+  if(!energyData[state.sheet])state.sheet=Object.keys(energyData)[0];
+  const cl=classify(state.sheet,colsOf(state.sheet));
+  renderControls();
+  const isAll=state.month.endsWith('-all');
+  const row=isAll?aggregateYear(state.sheet,state.year):rowOf(state.sheet,state.month);
+  const periodTxt=isAll?('All months '+state.year):monthLabel(state.month);
+  $('unitTitle').textContent=state.sheet;
+  $('totalTypeLabel').textContent=cl.isGen?'generation site · inverters only':(cl.total?('total feed: '+cl.total):'total = computed sum');
+  $('donutMonth').textContent=periodTxt;
+  $('rawMonth').textContent=periodTxt;
+  renderSidebar();renderKPIs(cl,row);renderTrend(cl);renderDonut(cl,row);renderStack(cl);renderRawBar(cl,row);renderTable();updateExportLinks();
+}
+
+/* ---------------- EDIT MODAL (Unit / Year / Month) ---------------- */
+function openEdit(){
+  $('editSheet').innerHTML=Object.keys(energyData).map(s=>'<option '+(s===state.sheet?'selected':'')+'>'+s+'</option>').join('');
+  $('editYear').innerHTML=YEARS.map(y=>'<option '+(y===state.year?'selected':'')+'>'+y+'</option>').join('');
+  $('editMonth').innerHTML=MONTHS.map(mm=>'<option value="'+mm+'" '+((state.year+'-'+mm)===state.month?'selected':'')+'>'+monthNameNum(mm)+'</option>').join('');
+  $('editSheet').onchange=fillEditFields;
+  $('editYear').onchange=fillEditFields;
+  $('editMonth').onchange=fillEditFields;
+  fillEditFields();
+  $('editModal').classList.add('show');
+}
+function fillEditFields(){
+  const s=$('editSheet').value, full=$('editYear').value+'-'+$('editMonth').value;
+  const row=rowOf(s,full), cols=orderedCols(s);  // same order as the table
+  $('editFields').innerHTML=cols.map(c=>
+    '<div><div class="kicker" style="text-transform:none;letter-spacing:0;color:var(--muted);margin-bottom:5px;">'+c+'</div>'+
+    '<input class="field editval" style="width:100%;" data-col="'+c+'" type="number" step="any" value="'+(Number.isFinite(row?.[c])?row[c]:'')+'"></div>').join('');
+}
+function closeEdit(){$('editModal').classList.remove('show');}
+async function saveEdit(){
+  const sheet=$('editSheet').value, month=$('editYear').value+'-'+$('editMonth').value, values={};
+  document.querySelectorAll('.editval').forEach(i=>{values[i.dataset.col]=i.value===''?null:parseFloat(i.value);});
+  const btn=$('saveBtn'); btn.disabled=true; const old=btn.textContent; btn.textContent='Saving…';
+  try{
+    await api('/api/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sheet:sheet,month:month,values:values})});
+    toast('✓ Saved to Excel'); closeEdit(); await loadData(); renderAll();
+  }catch(e){ toast(e.message,true); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+}
+
+/* ---------------- DATA + LIVE REFRESH ---------------- */
+function stamp(){const t=new Date().toLocaleTimeString('en-US',{hour12:false});$('syncPill').innerHTML='<span class="livedot"></span>Synced '+t;$('footSync').textContent='Last sync '+t;}
+async function loadData(){const d=await api('/api/data');energyData=d.data;fileVersion=d.version;colOrder=d.colorder||{};stamp();}
+async function pollVersion(){try{const d=await api('/api/version');if(d.version!==fileVersion){await loadData();renderAll();toast('Data updated from Excel');}else stamp();}catch(e){}}
+function toggleSidebar(open){$('sidebar').classList.toggle('open',open);$('scrim').classList.toggle('show',open);}
+$('tableSearch').addEventListener('input',renderTable);
+$('unitSearch').addEventListener('input',renderSidebar);
+
+(async function(){
+  try{
+    await loadData();
+    state.sheet=Object.keys(energyData)[0];
+    const now=new Date();
+    let y=now.getFullYear();
+    let lm=now.getMonth();              // 0-based current month == last month in 1-based terms
+    if(lm===0){ lm=12; y=y-1; }         // January -> December of previous year
+    if(y<2026){y=2026;lm=1;} if(y>2035){y=2035;}
+    const mm=String(lm).padStart(2,'0');
+    state.year=String(y);
+    state.month=state.year+'-'+mm;      // current year + last month
+    state.tableYear=state.year;
+    state.tableMonth='';                // table shows all months of the year by default
+    renderAll();
+    setInterval(pollVersion,20000);
+  }catch(e){ toast('Could not load data: '+e.message,true); }
+})();
+</script>
+</body>
+</html>

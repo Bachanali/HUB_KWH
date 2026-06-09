@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in · Feroze1888</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--indigo:#818cf8;--emerald:#34d399;--ink:#ffffff;--muted:#d4dce8;--line:rgba(255,255,255,.1);--panel:#232c3d;}
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  body{margin:0;min-height:100vh;font-family:"IBM Plex Sans",sans-serif;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    background:
+      radial-gradient(800px 500px at 85% -10%,rgba(129,140,248,.16),transparent 60%),
+      radial-gradient(700px 500px at 0% 110%,rgba(52,211,153,.10),transparent 55%),
+      linear-gradient(#1b2230,#1b2230);}
+  .card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:20px;
+    padding:34px 30px;box-shadow:0 30px 70px -25px rgba(0,0,0,.7);}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:26px;}
+  .logo{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--indigo),var(--emerald));}
+  .font-display{font-family:"Chakra Petch",sans-serif;}
+  h1{font-family:"Chakra Petch",sans-serif;font-size:19px;margin:0;font-weight:700;}
+  .sub{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.18em;color:var(--muted);margin-top:3px;}
+  label{display:block;font-size:11px;font-family:"IBM Plex Mono",monospace;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--muted);margin:16px 0 6px;}
+  input{width:100%;padding:11px 13px;border:1px solid rgba(255,255,255,.16);border-radius:11px;font-size:14px;
+    font-family:inherit;background:#1f2735;color:var(--ink);}
+  input:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(129,140,248,.2);background:#1f2735;}
+  button{width:100%;margin-top:22px;padding:12px;border:0;border-radius:11px;cursor:pointer;color:#fff;
+    font-size:14px;font-weight:600;background:linear-gradient(90deg,var(--indigo),#6366f1);color:#0b1220;}
+  button:hover{filter:brightness(1.06);}
+  .err{margin-top:16px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:10px;
+    padding:10px 12px;font-size:13px;}
+  .hint{margin-top:18px;text-align:center;font-size:11px;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
+</style>
+</head>
+<body>
+  <form class="card" method="post">
+    <div class="brand">
+      <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <div><h1>Feroze1888</h1><div class="sub">HUB ENERGY MONITORING</div></div>
+    </div>
+    <label>Username</label>
+    <input name="username" autocomplete="username" autofocus required>
+    <label>Password</label>
+    <input name="password" type="password" autocomplete="current-password" required>
+    {% if error %}<div class="err">{{ error }}</div>{% endif %}
+    <button type="submit">Sign in</button>
+    <div class="hint">Contact your administrator for access</div>
+  </form>
+</body>
+</html>
